@@ -1,4 +1,3 @@
-# smart_trans_v2
 
 A new Flutter project.
 
