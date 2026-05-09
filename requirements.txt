@@ -1,0 +1,7 @@
+flask
+flask-cors
+flask-bcrypt
+textblob
+deep-translator
+langdetect
+google-generativeai
