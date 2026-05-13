@@ -14,6 +14,7 @@ import 'profile_page.dart';
 import 'Admin_Chauffeur_List_Page.dart'; // <--- زدنا الـ Import متاع الصفحة الجديدة
 import 'admin_nlp_report_page.dart';
 import 'client_ai_dashboard_page.dart';
+import 'admin_historique_page.dart';
 import 'current_user.dart';
 import '../api_config.dart';
 
@@ -119,7 +120,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             
             
             Divider(),
-            _buildDrawerItem(Icons.history, "Suivi des Parcours", AdminAddParcoursPage()),
+            _buildDrawerItem(Icons.history, "Historique des Trajets", AdminHistoriquePage()),
             _buildDrawerItem(Icons.report_problem, "Incidents", IncidentListPage(), color: Colors.red),
            // _buildDrawerItem(Icons.psychology, "Analyse AI & Avis", AvisAdminPage(), color: Colors.purple),
                     _buildDrawerItem(Icons.psychology, "Rapport global d'analyse IA",AdminNlpReportPage(), color: Colors.purple),
@@ -190,6 +191,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Icons.psychology,
                     Colors.deepPurple,
                     const ClientAiDashboardPage(),
+                  ),
+
+                  const SizedBox(height: 12),
+                  _buildQuickActionCard(
+                    "📜 Historique des Trajets",
+                    "Voir l'historique complet des parcours effectués",
+                    Icons.history,
+                    Colors.blueGrey,
+                    AdminHistoriquePage(),
                   ),
                 ],
               ),

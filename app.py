@@ -1764,6 +1764,41 @@ def get_parcours_reviews(parcours_id):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/get_all_historique', methods=['GET'])
+def get_all_historique():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # We join Historique with Utilisateur (via Chauffeur) to get the driver's name
+        # and Parcours/Ligne for more details if necessary.
+        query = """
+            SELECT 
+                h.ID_historique, 
+                h.Date, 
+                h.Heure_fin, 
+                h.Statut, 
+                h.Depart, 
+                h.Arrivee, 
+                h.Performance_IA,
+                u.Nom as Nom_Chauffeur,
+                l.Libelle as Nom_Ligne
+            FROM Historique h
+            JOIN Chauffeur c ON h.Code_chauffeur = c.Code_chauffeur
+            JOIN Utilisateur u ON c.ID_utilisateur = u.ID_utilisateur
+            LEFT JOIN Parcours p ON h.ID_parcours = p.ID_parcours
+            LEFT JOIN Ligne l ON p.Code_Ligne = l.Code_Ligne
+            ORDER BY h.Date DESC
+        """
+        rows = cursor.execute(query).fetchall()
+        conn.close()
+        
+        return jsonify([dict(row) for row in rows]), 200
+    except Exception as e:
+        print(f"Erreur get_all_historique: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     try:
         init_all_tables()
