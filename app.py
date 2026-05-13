@@ -798,6 +798,34 @@ def add_avis():
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # 0. RESOLUTION DES INFOS MANQUANTES (Pour garantir que ID_parcours n'est pas NULL)
+        code_chauffeur = None
+        code_ligne = None
+        code_bus = None
+        
+        if id_historique:
+            res = cursor.execute("""
+                SELECT H.Code_chauffeur, H.ID_parcours, P.Code_Ligne, L.Code_bus
+                FROM Historique H
+                JOIN Parcours P ON H.ID_parcours = P.ID_parcours
+                LEFT JOIN Ligne L ON P.Code_Ligne = L.Code_Ligne
+                WHERE H.ID_historique = ?
+            """, (id_historique,)).fetchone()
+            if res: 
+                code_chauffeur = res['Code_chauffeur']
+                parcours_id = res['ID_parcours']
+                code_ligne = res['Code_Ligne']
+                code_bus = res['Code_bus']
+
+        # Résolution du bus si toujours NULL : Priorité au chauffeur, puis à la ligne
+        if not code_bus and code_chauffeur:
+            res_bus = cursor.execute("SELECT Code_bus FROM Bus WHERE Code_chauffeur = ?", (code_chauffeur,)).fetchone()
+            if res_bus: code_bus = res_bus['Code_bus']
+            
+        if not code_bus and code_ligne:
+            res_bus = cursor.execute("SELECT Code_bus FROM Ligne WHERE Code_Ligne = ?", (code_ligne,)).fetchone()
+            if res_bus: code_bus = res_bus['Code_bus']
+
         # 1. Insertion de l'avis avec les scores IA
         cursor.execute("""
             INSERT INTO Avis 
@@ -817,30 +845,6 @@ def add_avis():
         ))
         
         # 2. MISE À JOUR AUTOMATIQUE DE LA PERFORMANCE DU CHAUFFEUR
-        # On essaie de trouver le chauffeur
-        code_chauffeur = None
-        code_ligne = None
-        code_bus = None
-        
-        if id_historique:
-            res = cursor.execute("""
-                SELECT H.Code_chauffeur, H.ID_parcours, P.Code_Ligne, L.Code_bus
-                FROM Historique H
-                JOIN Parcours P ON H.ID_parcours = P.ID_parcours
-                LEFT JOIN Ligne L ON P.Code_Ligne = L.Code_Ligne
-                WHERE H.ID_historique = ?
-            """, (id_historique,)).fetchone()
-            if res: 
-                code_chauffeur = res['Code_chauffeur']
-                parcours_id = res['ID_parcours']
-        # Résolution du bus : Priorité au chauffeur, puis à la ligne
-        if code_chauffeur:
-            res_bus = cursor.execute("SELECT Code_bus FROM Bus WHERE Code_chauffeur = ?", (code_chauffeur,)).fetchone()
-            if res_bus: code_bus = res_bus['Code_bus']
-            
-        if not code_bus and code_ligne:
-            res_bus = cursor.execute("SELECT Code_bus FROM Ligne WHERE Code_Ligne = ?", (code_ligne,)).fetchone()
-            if res_bus: code_bus = res_bus['Code_bus']
 
         if code_chauffeur:
             # Nouveau calcul du score global du chauffeur : (Moyenne Notes + Moyenne Sentiment*0.5)
