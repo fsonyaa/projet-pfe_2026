@@ -74,10 +74,6 @@ class _AdminNlpReportPageState extends State<AdminNlpReportPage> {
                   SizedBox(height: 12),
                   _buildParcoursDashboard(),
                   
-                  SizedBox(height: 24),
-                  _sectionHeader("Répartition Thématique", Icons.category_outlined),
-                  SizedBox(height: 12),
-                  _buildCategoryGrid(),
                   
                   SizedBox(height: 24),
                   _sectionHeader("Mots-clés IA Détectés", Icons.psychology_outlined),
@@ -311,57 +307,6 @@ class _AdminNlpReportPageState extends State<AdminNlpReportPage> {
     );
   }
 
-  Widget _buildCategoryGrid() {
-    Map<String, dynamic> cats = reportData['category_distribution'] ?? {};
-    if (cats.isEmpty) return _emptyState("Aucune thématique détectée");
-    
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: cats.entries.map((e) => _categoryCard(e.key, e.value)).toList(),
-    );
-  }
-
-  Widget _categoryCard(String label, int count) {
-    return Container(
-      width: (MediaQuery.of(context).size.width / 2) - 24, // Reduced slightly more for safety
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.indigo.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(6),
-            decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
-            child: Icon(_getCategoryIcon(label), size: 18, color: Colors.indigo),
-          ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13), overflow: TextOverflow.ellipsis),
-                Text("$count avis", style: TextStyle(color: Colors.grey, fontSize: 11)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category) {
-      case 'Chauffeur': return Icons.person;
-      case 'Confort': return Icons.weekend;
-      case 'Véhicule': return Icons.directions_bus;
-      case 'Service': return Icons.support_agent;
-      default: return Icons.bubble_chart;
-    }
-  }
 
   Widget _buildKeywordCloud() {
     List keywords = reportData['top_keywords'] ?? [];

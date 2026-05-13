@@ -1686,9 +1686,6 @@ def get_nlp_report():
         sentiments = cursor.execute("SELECT Sentiment_label, COUNT(*) as count FROM Avis GROUP BY Sentiment_label").fetchall()
         sentiment_stats = {row['Sentiment_label']: row['count'] for row in sentiments}
         
-        # 1.bis Statistiques par catégorie
-        categories = cursor.execute("SELECT Category, COUNT(*) as count FROM Avis GROUP BY Category").fetchall()
-        category_stats = {row['Category']: row['count'] for row in categories}
         
         # 2. Moyenne des scores
         avg_score = cursor.execute("SELECT AVG(Sentiment_score) FROM Avis").fetchone()[0] or 0
@@ -1733,7 +1730,6 @@ def get_nlp_report():
         return jsonify({
             "total_avis": total_avis,
             "sentiment_distribution": sentiment_stats,
-            "category_distribution": category_stats,
             "average_sentiment_score": round(avg_score, 2),
             "top_keywords": sorted_keywords,
             "top_drivers": [dict(row) for row in top_drivers],
