@@ -81,7 +81,7 @@ class _AdminNlpReportPageState extends State<AdminNlpReportPage> {
                   _buildKeywordCloud(),
                   
                   SizedBox(height: 24),
-                  _sectionHeader("Top Performance Chauffeurs", Icons.star_outline),
+                  _sectionHeader("Top score de chauffeurs", Icons.star_outline),
                   SizedBox(height: 12),
                   _buildTopDriversList(),
                   SizedBox(height: 40),
