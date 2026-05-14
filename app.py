@@ -4,6 +4,9 @@ import sqlite3
 import re
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+import random
+import string
+from flask_mail import Mail, Message
 # ─── NLP & Gemini AI Libraries ──────────────────────────────────────────────
 try:
     from textblob import TextBlob
@@ -35,6 +38,15 @@ app = Flask(__name__)
 # ⭐ Smart-Trans API Configuration ⭐
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 bcrypt = Bcrypt(app)
+
+# ⭐ CONFIGURATION FLASK-MAIL (GMAIL) ⭐
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'sonia.fatnassi@enis.tn' 
+app.config['MAIL_PASSWORD'] = 'sztw sklu nyav ypzz' 
+app.config['MAIL_DEFAULT_SENDER'] = 'sonia.fatnassi@enis.tn'
+mail = Mail(app)
 
 
 def get_db_connection():
@@ -174,6 +186,13 @@ def init_all_tables():
         FOREIGN KEY(ID_historique) REFERENCES Historique(ID_historique),
         FOREIGN KEY(ID_parcours) REFERENCES Parcours(ID_parcours))''')
 
+    # 11. ResetCode (For Forgot Password)
+    cursor.execute('''CREATE TABLE IF NOT EXISTS ResetCode (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        Email TEXT,
+        Code TEXT,
+        Expiration DATETIME)''')
+
     # إضافة Admin تجريبي
     hashed_pw = bcrypt.generate_password_hash('123456').decode('utf-8')
     cursor.execute('''INSERT OR IGNORE INTO Utilisateur (Nom, Email, Mot_de_passe, Role) 
@@ -251,6 +270,118 @@ def login():
 
 
 
+# 🔑 --- FORGOT PASSWORD SECTION --- 🔑
+
+@app.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    email = data.get('email', '').lower().strip()
+
+    if not email:
+        return jsonify({"error": "Email est obligatoire"}), 400
+
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM Utilisateur WHERE Email = ?', (email,)).fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({"error": "Aucun compte trouvé avec cet email"}), 404
+
+    # Generer un code de 6 chiffres
+    code = ''.join(random.choices(string.digits, k=6))
+    
+    # Enregistrer le code dans la DB
+    conn.execute('DELETE FROM ResetCode WHERE Email = ?', (email,)) # Supprimer les anciens codes
+    conn.execute('INSERT INTO ResetCode (Email, Code) VALUES (?, ?)', (email, code))
+    conn.commit()
+    conn.close()
+
+    print(f"--- DEBUG FORGOT PASSWORD ---")
+    print(f"Email: {email}")
+    print(f"Code genere: {code}")
+    print(f"-----------------------------")
+
+    # Envoyer l'email (Version Premium HTML)
+    try:
+        msg = Message("Code de vérification SMART-TRANS",
+                      recipients=[email]) # <-- C'est ici que l'email devient DYNAMIQUE
+        
+        msg.html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #008080; margin: 0;">SMART-TRANS</h1>
+                <p style="color: #666; font-size: 12px;">Cyber Security Edition 2026</p>
+            </div>
+            
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; text-align: center;">
+                <p style="font-size: 16px; color: #333;">Bonjour <strong>{user['Nom']}</strong>,</p>
+                <p style="font-size: 14px; color: #555;">Vous avez demandé la réinitialisation de votre mot de passe. Voici votre code de vérification :</p>
+                
+                <div style="background: #008080; color: white; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 8px; display: inline-block; letter-spacing: 5px; margin: 20px 0;">
+                    {code}
+                </div>
+                
+                <p style="font-size: 12px; color: #888;">Ce code est valable pendant 15 minutes. Ne le partagez avec personne.</p>
+            </div>
+            
+            <div style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+                <p style="font-size: 12px; color: #aaa;">Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute sécurité.</p>
+                <p style="font-size: 14px; color: #008080; font-weight: bold;">L'équipe SMART-TRANS</p>
+            </div>
+        </div>
+        """
+        mail.send(msg)
+        return jsonify({"message": "Code envoyé par email"}), 200
+    except Exception as e:
+        print(f"Error envoi email: {e}")
+        return jsonify({"error": "Erreur lors de l'envoi de l'email. Verifiez votre configuration SMTP."}), 500
+
+@app.route('/verify-reset-code', methods=['POST'])
+def verify_reset_code():
+    data = request.get_json()
+    email = data.get('email', '').lower().strip()
+    code = data.get('code', '')
+
+    conn = get_db_connection()
+    res = conn.execute('SELECT * FROM ResetCode WHERE Email = ? AND Code = ?', (email, code)).fetchone()
+    conn.close()
+
+    if res:
+        return jsonify({"message": "Code valide"}), 200
+    else:
+        return jsonify({"error": "Code invalide ou expiré"}), 400
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    email = data.get('email', '').lower().strip()
+    code = data.get('code', '')
+    new_password = data.get('new_password', '')
+
+    if len(new_password) < 6:
+        return jsonify({"error": "Le mot de passe doit contenir au moins 6 caractères"}), 400
+
+    conn = get_db_connection()
+    # Verifier encore une fois le code
+    res = conn.execute('SELECT * FROM ResetCode WHERE Email = ? AND Code = ?', (email, code)).fetchone()
+    
+    if not res:
+        conn.close()
+        return jsonify({"error": "Action non autorisée"}), 403
+
+    # Hasher le nouveau mot de passe
+    hashed_pw = bcrypt.generate_password_hash(new_password).decode('utf-8')
+    
+    # Mettre à jour
+    conn.execute('UPDATE Utilisateur SET Mot_de_passe = ? WHERE Email = ?', (hashed_pw, email))
+    conn.execute('DELETE FROM ResetCode WHERE Email = ?', (email,)) # Nettoyer
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Mot de passe réinitialisé avec succès"}), 200
+
+
+
 # 🚌 1. دالة جلب الكيران (GET)
 
 
@@ -293,7 +424,7 @@ def add_bus():
         conn.close()
         return jsonify({"status": "success", "message": "Bus ajouté"}), 201
     except Exception as e:
-        print(f"❌ Erreur add_bus: {e}") 
+        print(f"Erreur add_bus: {e}") 
         return jsonify({"status": "error", "message": str(e)}), 500
 # 📝 3. دالة تعديل كار (PUT) - مصلحة 100%
 @app.route('/update_bus/<int:id>', methods=['PUT'])
@@ -318,7 +449,7 @@ def update_bus(id):
         conn.close()
         return jsonify({"status": "success", "message": "Bus mis à jour"}), 200
     except Exception as e:
-        print(f"❌ Erreur update_bus: {e}")
+        print(f"Erreur update_bus: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # 🗑️ 4. دالة حذف كار (DELETE) - مصلحة 100%
@@ -340,7 +471,7 @@ def delete_bus(id):
         conn.close()
         return jsonify({"status": "success", "message": "Bus et incidents associés supprimés"}), 200
     except Exception as e:
-        print(f"❌ Erreur delete_bus: {e}")
+        print(f"Erreur delete_bus: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -363,7 +494,7 @@ def add_ligne():
         conn.commit()
         return jsonify({"message": "Ligne ajoutée avec succès"}), 201
     except Exception as e:
-        print(f"❌ Erreur Flask: {str(e)}") # هذي باش تطلعلك الغلطة في الـ Terminal
+        print(f"Erreur Flask: {str(e)}") # هذي باش تطلعلك الغلطة في الـ Terminal
         return jsonify({"error": str(e)}), 500
     finally:
         if conn:
@@ -383,7 +514,7 @@ def get_lignes():
         
         return jsonify(lignes_list), 200
     except Exception as e:
-        print(f"❌ Erreur get_lignes: {e}")
+        print(f"Erreur get_lignes: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # --- حذف خط نقل (Delete Ligne) ---
@@ -402,7 +533,7 @@ def delete_ligne(id):
         conn.close()
         return jsonify({"message": "Ligne supprimée"}), 200
     except Exception as e:
-        print(f"❌ Erreur delete_ligne: {e}")
+        print(f"Erreur delete_ligne: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/update_ligne/<int:id>', methods=['PUT', 'POST'])
@@ -427,7 +558,7 @@ def update_ligne(id):
         conn.close()
         return jsonify({"message": "Ligne mise à jour"}), 200
     except Exception as e:
-        print(f"❌ Erreur update_ligne: {e}")
+        print(f"Erreur update_ligne: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -611,7 +742,7 @@ def update_profile():
         
         return jsonify({"message": "Profil mis à jour avec succès ✅"}), 200
     except Exception as e:
-        print(f"❌ Erreur update_profile: {e}")
+        print(f"Erreur update_profile: {e}")
         return jsonify({"error": str(e)}), 500
 
 # --- 6. GESTION PARCOURS ---
@@ -680,7 +811,7 @@ def update_parcours(id):
         conn.commit()
         return jsonify({"status": "success", "message": "Mise à jour réussie"}), 200
     except Exception as e:
-        print(f"❌ UPDATE ERROR: {str(e)}")
+        print(f"UPDATE ERROR: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         conn.close()
@@ -724,7 +855,7 @@ def delete_parcours(id):
         else:
             return jsonify({"status": "error", "message": "Parcours non trouvé"}), 404
     except Exception as e:
-        print(f"❌ DELETE ERROR: {str(e)}")
+        print(f"DELETE ERROR: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         conn.close()
@@ -792,10 +923,10 @@ def add_avis():
             keywords = ai_data.get("keywords", "")
             is_risk = ai_data.get("risk", "Non")
             
-            print(f"✨ Gemini Analysis: {sentiment_label} | {category} | Risk: {is_risk}")
+            print(f"Gemini Analysis: {sentiment_label} | {category} | Risk: {is_risk}")
             
         except Exception as e:
-            print(f"⚠️ Erreur Gemini (Fallback TextBlob): {e}")
+            print(f"Erreur Gemini (Fallback TextBlob): {e}")
             # Fallback sur TextBlob si Gemini échoue
             if HAS_NLP:
                 blob = TextBlob(comment)
@@ -907,7 +1038,7 @@ def add_avis():
                 INSERT INTO Incident (Description, Date, Code_chauffeur, Code_Ligne, Code_bus)
                 VALUES (?, ?, ?, ?, ?)
             """, (f"[IA ALERT] {comment}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), code_chauffeur, code_ligne, code_bus))
-            print(f"🚨 Incident de sécurité détecté automatiquement et enregistré !")
+            print(f"Incident de securite detecte automatiquement et enregistre !")
 
         conn.commit()
         conn.close()
@@ -1123,10 +1254,10 @@ def add_incident():
         conn.commit()
         conn.close()
         
-        print(f"✅ Incident enregistré : Chauffeur {id_chauffeur} sur Ligne {id_ligne}")
+        print(f"Incident enregistre : Chauffeur {id_chauffeur} sur Ligne {id_ligne}")
         return jsonify({"message": "Incident ajouté avec succès"}), 201
     except Exception as e:
-        print(f"❌ Erreur SQL: {e}")
+        print(f"Erreur SQL: {e}")
         return jsonify({"error": str(e)}), 500
     
 @app.route('/manage_parcours', methods=['POST'])
@@ -1149,7 +1280,7 @@ def manage_parcours():
                 VALUES (?, ?, ?, '--:--', ?)
             """, (p_depart, p_arrivee, p_heure, p_ligne))
             conn.commit()
-            print(f"✅ Parcours Démarré: {p_depart} -> {p_arrivee} à {p_heure}")
+            print(f"Parcours Demarre: {p_depart} -> {p_arrivee} à {p_heure}")
             msg = "Parcours démarré 🚌"
 
         elif action == 'end':
@@ -1170,7 +1301,7 @@ def manage_parcours():
         return jsonify({"status": "success", "message": msg}), 200
 
     except Exception as e:
-        print(f"❌ Erreur General: {e}")
+        print(f"Erreur General: {e}")
         return jsonify({"error": str(e)}), 500
 
 

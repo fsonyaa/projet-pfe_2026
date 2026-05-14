@@ -5,6 +5,7 @@ import 'pages/admin_dashboard.dart';
 import 'pages/chauffeurdashboard.dart';
 import 'pages/clientdashboard.dart';
 import 'pages/current_user.dart';
+import 'pages/forgot_password_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
+        '/forgot_password': (context) => const ForgotPasswordPage(),
         '/admin_dashboard': (context) => AdminDashboard(adminEmail: CurrentUser.email),
       },
     );

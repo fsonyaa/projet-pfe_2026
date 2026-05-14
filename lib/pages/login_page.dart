@@ -148,7 +148,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: const Text("Se connecter", style: TextStyle(color: Colors.white, fontSize: 18)),
                       ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/forgot_password'),
+                  child: const Text("Mot de passe oublié ?", style: TextStyle(color: Colors.teal)),
+                ),
+                const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/register'),
                   child: const Text("Pas de compte ? Créer un compte", style: TextStyle(color: Colors.teal)),
