@@ -655,7 +655,7 @@ def add_parcours():
         return jsonify({"error": str(e)}), 500
 
 # --- تحديث رحلة (Update Parcours) مصلح ---
-@app.route('/update_parcours/<int:id>', methods=['PUT', 'OPTIONS'])
+@app.route('/update_parcours/<int:id>', methods=['PUT', 'POST', 'OPTIONS'])
 def update_parcours(id):
     if request.method == 'OPTIONS': 
         return jsonify({"ok": True}), 200
@@ -663,12 +663,19 @@ def update_parcours(id):
     conn = get_db_connection()
     try:
         data = request.get_json(force=True)
-        # 💡 استعملنا ID_parcours كيف ما موجود في الداتابيز متاعك
+        # Fix: Matching the actual table schema (Depart, Arrivee, Heure_depart, Heure_arrivee, Code_Ligne)
         conn.execute('''
             UPDATE Parcours 
-            SET Date = ?, Heure_depart = ?, Duree = ?, Code_Ligne = ? 
+            SET Depart = ?, Arrivee = ?, Heure_depart = ?, Heure_arrivee = ?, Code_Ligne = ? 
             WHERE ID_parcours = ?
-        ''', (data.get('date'), data.get('heure_depart'), data.get('duree'), data.get('code_ligne'), id))
+        ''', (
+            data.get('Depart'), 
+            data.get('Arrivee'), 
+            data.get('Heure_depart'), 
+            data.get('Heure_arrivee'), 
+            data.get('Code_Ligne'), 
+            id
+        ))
         
         conn.commit()
         return jsonify({"status": "success", "message": "Mise à jour réussie"}), 200
@@ -677,6 +684,27 @@ def update_parcours(id):
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         conn.close()
+
+@app.route('/get_all_parcours', methods=['GET'])
+def get_all_parcours():
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # We join with Ligne to get the label of the line
+        query = """
+            SELECT P.*, L.Libelle as Nom_Ligne
+            FROM Parcours P
+            JOIN Ligne L ON P.Code_Ligne = L.Code_Ligne
+            ORDER BY L.Libelle, P.Heure_depart ASC
+        """
+        rows = cursor.execute(query).fetchall()
+        conn.close()
+        
+        return jsonify([dict(ix) for ix in rows])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # --- حذف رحلة (Delete Parcours) مصلح ---
@@ -1806,4 +1834,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Error during database init: {e}")
     
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    app.run(debug=True, host='0.0.0.0', port=8000)

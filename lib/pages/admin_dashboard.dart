@@ -12,6 +12,7 @@ import 'performance_chauffeur_page.dart';
 import 'AdminAddParcoursPage.dart';
 import 'profile_page.dart';
 import 'Admin_Chauffeur_List_Page.dart'; // <--- زدنا الـ Import متاع الصفحة الجديدة
+import 'AdminParcoursListPage.dart'; // Import the new list page
 import 'admin_nlp_report_page.dart';
 import 'client_ai_dashboard_page.dart';
 import 'admin_historique_page.dart';
@@ -115,6 +116,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             _buildDrawerItem(Icons.map, "Gestion des Lignes", LigneListPage()),
             _buildDrawerItem(Icons.directions_bus, "Gestion des Bus", BusListPage()),
             _buildDrawerItem(Icons.person, "Gestion des Chauffeurs", AdminChauffeurListPage()),
+            _buildDrawerItem(Icons.add_task, "Gestion des Parcours", AdminParcoursListPage()),
             
             // --- تعديل الـ Affectations هنا ---
             
@@ -168,11 +170,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   
                   // --- زدنا كرت الـ Affectation هنا للوصول السريع ---
                    _buildQuickActionCard(
-                   "Affecter un Parcours",
-                   "Attribuer une ligne...",
-                    Icons.add_task,
-                   Colors.teal,
-                    AdminAddParcoursPage(), // 👈 هذا هو الـ Argument اللي كان ناقص
+                    "Gestion des Parcours",
+                    "Programmer, modifier ou supprimer...",
+                     Icons.add_task,
+                    Colors.teal,
+                     AdminParcoursListPage(), 
                   ),
 
                   const SizedBox(height: 12),
