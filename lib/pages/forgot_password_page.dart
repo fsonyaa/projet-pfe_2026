@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_config.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -121,9 +122,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Réinitialisation"),
+        title: Text(l10n.resetPassword),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -133,24 +135,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           children: [
             const Icon(Icons.lock_reset, size: 80, color: Colors.teal),
             const SizedBox(height: 20),
-            if (step == 1) _buildEmailStep(),
-            if (step == 2) _buildCodeStep(),
-            if (step == 3) _buildPasswordStep(),
+            if (step == 1) _buildEmailStep(l10n),
+            if (step == 2) _buildCodeStep(l10n),
+            if (step == 3) _buildPasswordStep(l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEmailStep() {
+  Widget _buildEmailStep(AppLocalizations l10n) {
     return Column(
       children: [
-        const Text("Entrez votre email pour recevoir un code de vérification", textAlign: TextAlign.center),
+        Text(l10n.enterEmailCode, textAlign: TextAlign.center),
         const SizedBox(height: 20),
         TextField(
           controller: emailController,
           decoration: InputDecoration(
-            labelText: "Email",
+            labelText: l10n.email,
             prefixIcon: const Icon(Icons.email),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -165,13 +167,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   backgroundColor: Colors.teal,
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text("Envoyer le code", style: TextStyle(color: Colors.white)),
+                child: Text(l10n.sendCode, style: const TextStyle(color: Colors.white)),
               ),
       ],
     );
   }
 
-  Widget _buildCodeStep() {
+  Widget _buildCodeStep(AppLocalizations l10n) {
     return Column(
       children: [
         Text("Code envoyé à ${emailController.text}", textAlign: TextAlign.center),
@@ -179,7 +181,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         TextField(
           controller: codeController,
           decoration: InputDecoration(
-            labelText: "Code de vérification (6 chiffres)",
+            labelText: l10n.verifyCode + " (6 chiffres)",
             prefixIcon: const Icon(Icons.security),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -195,22 +197,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   backgroundColor: Colors.teal,
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text("Vérifier le code", style: TextStyle(color: Colors.white)),
+                child: Text(l10n.verifyCode, style: const TextStyle(color: Colors.white)),
               ),
         TextButton(onPressed: () => setState(() => step = 1), child: const Text("Changer l'email"))
       ],
     );
   }
 
-  Widget _buildPasswordStep() {
+  Widget _buildPasswordStep(AppLocalizations l10n) {
     return Column(
       children: [
-        const Text("Définissez votre nouveau mot de passe", textAlign: TextAlign.center),
+        Text(l10n.newPassword, textAlign: TextAlign.center),
         const SizedBox(height: 20),
         TextField(
           controller: passwordController,
           decoration: InputDecoration(
-            labelText: "Nouveau mot de passe",
+            labelText: l10n.newPassword,
             prefixIcon: const Icon(Icons.lock),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -220,7 +222,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         TextField(
           controller: confirmPasswordController,
           decoration: InputDecoration(
-            labelText: "Confirmer le mot de passe",
+            labelText: l10n.confirmPassword,
             prefixIcon: const Icon(Icons.lock_outline),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -235,7 +237,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   backgroundColor: Colors.teal,
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text("Changer le mot de passe", style: TextStyle(color: Colors.white)),
+                child: Text(l10n.changePassword, style: const TextStyle(color: Colors.white)),
               ),
       ],
     );

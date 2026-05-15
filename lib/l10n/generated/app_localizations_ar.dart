@@ -28,4 +28,31 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get welcome => 'مرحباً';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get noAccount => 'ليس لديك حساب؟ إنشاء حساب';
+
+  @override
+  String get resetPassword => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get enterEmailCode => 'أدخل بريدك الإلكتروني لتلقي رمز التحقق';
+
+  @override
+  String get sendCode => 'إرسال الرمز';
+
+  @override
+  String get verifyCode => 'التحقق من الرمز';
+
+  @override
+  String get newPassword => 'كلمة مرور جديدة';
+
+  @override
+  String get confirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get changePassword => 'تغيير كلمة المرور';
 }

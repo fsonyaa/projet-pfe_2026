@@ -8,7 +8,7 @@ import 'pages/current_user.dart';
 import 'pages/forgot_password_page.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'language_provider.dart';
 
 void main() async {

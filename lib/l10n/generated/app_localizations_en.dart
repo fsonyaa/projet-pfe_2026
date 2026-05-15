@@ -28,4 +28,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcome => 'Welcome';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get noAccount => 'No account? Create one';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get enterEmailCode =>
+      'Enter your email to receive a verification code';
+
+  @override
+  String get sendCode => 'Send Code';
+
+  @override
+  String get verifyCode => 'Verify Code';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get changePassword => 'Change Password';
 }

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../language_provider.dart';
 
 // --- Imports ---
@@ -145,7 +145,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             Divider(),
             ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
-              title: Text(AppLocalizations.of(context)!.localeName == 'fr' ? "Déconnexion" : (AppLocalizations.of(context)!.localeName == 'ar' ? "تسجيل الخروج" : "Logout")),
+              title: Text(AppLocalizations.of(context)!.logout),
               onTap: () async {
                 await CurrentUser.clearSession();
                 Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);

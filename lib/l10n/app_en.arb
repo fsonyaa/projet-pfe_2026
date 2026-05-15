@@ -9,5 +9,14 @@
   "password": "Password",
   "forgotPassword": "Forgot Password?",
   "language": "Language",
-  "welcome": "Welcome"
+  "welcome": "Welcome",
+  "logout": "Logout",
+  "noAccount": "No account? Create one",
+  "resetPassword": "Reset Password",
+  "enterEmailCode": "Enter your email to receive a verification code",
+  "sendCode": "Send Code",
+  "verifyCode": "Verify Code",
+  "newPassword": "New Password",
+  "confirmPassword": "Confirm Password",
+  "changePassword": "Change Password"
 }

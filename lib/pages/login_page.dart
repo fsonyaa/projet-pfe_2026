@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../language_provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -170,9 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/register'),
                   child: Text(
-                    l10n.localeName == 'fr' 
-                      ? "Pas de compte ? Créer un compte" 
-                      : (l10n.localeName == 'ar' ? "ليس لديك حساب؟ إنشاء حساب" : "No account? Create one"), 
+                    l10n.noAccount,
                     style: const TextStyle(color: Colors.teal)
                   ),
                 ),
