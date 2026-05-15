@@ -8,9 +8,7 @@ import 'Clienthistorique_page.dart';
 import 'login_page.dart';
 import 'profile_page.dart';
 import 'current_user.dart';
-import 'avis_admin_page.dart';
-import 'admin_nlp_report_page.dart';
-import 'client_ai_dashboard_page.dart';
+
 
 class ClientDashboard extends StatefulWidget {
   final int clientId;
@@ -178,19 +176,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
             },
           ),
 
-          ListTile(
-            leading: const Icon(Icons.analytics, color: Colors.indigo),
-            title: const Text("Rapport d'Analyse IA"),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AdminNlpReportPage(),
-                ),
-              );
-            },
-          ),
+
 
           ListTile(
             leading: const Icon(Icons.logout),
