@@ -38,7 +38,7 @@ class _AdminHistoriquePageState extends State<AdminHistoriquePage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text("Historique des Trajets", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text("Historique des Parcours", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.teal[700],
         elevation: 0,
         actions: [

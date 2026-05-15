@@ -6,11 +6,20 @@ import 'pages/chauffeurdashboard.dart';
 import 'pages/clientdashboard.dart';
 import 'pages/current_user.dart';
 import 'pages/forgot_password_page.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'language_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await CurrentUser.loadSession();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => LanguageProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -42,6 +51,18 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.teal,
         useMaterial3: false,
       ),
+      locale: context.watch<LanguageProvider>().locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('fr'),
+        Locale('ar'),
+      ],
       home: _getInitialPage(),
       routes: {
         '/login': (context) => const LoginPage(),

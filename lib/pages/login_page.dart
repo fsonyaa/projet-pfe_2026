@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../language_provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -8,7 +11,6 @@ import 'clientdashboard.dart';
 import 'chauffeurdashboard.dart';
 import 'admin_dashboard.dart';
 import '../api_config.dart';
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,14 +25,14 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
 
   Future<void> login() async {
+    final l10n = AppLocalizations.of(context)!;
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      _showSnackBar("Veuillez remplir tous les champs", Colors.orange);
+      _showSnackBar(l10n.localeName == 'fr' ? "Veuillez remplir tous les champs" : "Please fill all fields", Colors.orange);
       return;
     }
 
     setState(() => isLoading = true);
 
-    // Utiliser l'URL centralisée de ApiConfig
     String apiUrl = "${ApiConfig.baseUrl}/login";
 
     try {
@@ -46,15 +48,13 @@ class _LoginPageState extends State<LoginPage> {
       var data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // ✅ SAVE SESSION
         String nom = data["nom"] ?? "Utilisateur";
         String photo = data["photo"] ?? "";
         await CurrentUser.saveSession(data["email"], data["role"], data["id"] ?? 1, userNom: nom, userPhoto: photo);
         int userId = CurrentUser.id;
 
-        _showSnackBar("Bienvenue $nom (${CurrentUser.role})", Colors.green);
+        _showSnackBar("${l10n.welcome} $nom (${CurrentUser.role})", Colors.green);
 
-        // ✅ REDIRECT
         if (CurrentUser.role == "client") {
           Navigator.pushReplacement(
             context,
@@ -78,10 +78,10 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } else {
-        _showSnackBar(data['message'] ?? "Identifiants incorrects", Colors.red);
+        _showSnackBar(data['message'] ?? (l10n.localeName == 'fr' ? "Identifiants incorrects" : "Incorrect credentials"), Colors.red);
       }
     } catch (e) {
-      _showSnackBar("Erreur: Impossible de contacter le serveur", Colors.red);
+      _showSnackBar(l10n.localeName == 'fr' ? "Erreur: Impossible de contacter le serveur" : "Error: Could not reach server", Colors.red);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -95,21 +95,34 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final langProvider = Provider.of<LanguageProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          _buildLanguageButton(context, langProvider, 'FR', 'fr'),
+          _buildLanguageButton(context, langProvider, 'EN', 'en'),
+          _buildLanguageButton(context, langProvider, 'AR', 'ar'),
+          const SizedBox(width: 10),
+        ],
+      ),
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 450),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(25.0),
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.directions_bus, size: 90, color: Colors.teal),
                 const SizedBox(height: 10),
-                const Text(
-                  "SMART-TRANS",
-                  style: TextStyle(
+                Text(
+                  l10n.appTitle,
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
@@ -121,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
-                    labelText: "Email",
+                    labelText: l10n.email,
                     prefixIcon: const Icon(Icons.email, color: Colors.teal),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -130,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: passwordController,
                   decoration: InputDecoration(
-                    labelText: "Mot de passe",
+                    labelText: l10n.password,
                     prefixIcon: const Icon(Icons.lock, color: Colors.teal),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -146,21 +159,44 @@ class _LoginPageState extends State<LoginPage> {
                           minimumSize: const Size(double.infinity, 55),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text("Se connecter", style: TextStyle(color: Colors.white, fontSize: 18)),
+                        child: Text(l10n.login, style: const TextStyle(color: Colors.white, fontSize: 18)),
                       ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/forgot_password'),
-                  child: const Text("Mot de passe oublié ?", style: TextStyle(color: Colors.teal)),
+                  child: Text(l10n.forgotPassword, style: const TextStyle(color: Colors.teal)),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: const Text("Pas de compte ? Créer un compte", style: TextStyle(color: Colors.teal)),
+                  child: Text(
+                    l10n.localeName == 'fr' 
+                      ? "Pas de compte ? Créer un compte" 
+                      : (l10n.localeName == 'ar' ? "ليس لديك حساب؟ إنشاء حساب" : "No account? Create one"), 
+                    style: const TextStyle(color: Colors.teal)
+                  ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageButton(BuildContext context, LanguageProvider provider, String label, String code) {
+    bool isSelected = provider.locale.languageCode == code;
+    return TextButton(
+      onPressed: () => provider.changeLanguage(code),
+      style: TextButton.styleFrom(
+        minimumSize: Size.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.teal : Colors.grey,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );

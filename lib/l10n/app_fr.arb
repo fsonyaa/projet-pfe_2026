@@ -1,0 +1,10 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Smart Trans",
+  "login": "Connexion",
+  "email": "Email",
+  "password": "Mot de passe",
+  "forgotPassword": "Mot de passe oublié ?",
+  "language": "Langue",
+  "welcome": "Bienvenue"
+}

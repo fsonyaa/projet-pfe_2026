@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "appTitle": "Smart Trans",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "login": "Login",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot Password?",
+  "language": "Language",
+  "welcome": "Welcome"
+}

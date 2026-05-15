@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../language_provider.dart';
 
 // --- Imports ---
 import 'bus_list_page.dart';
@@ -89,7 +92,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text("Smart-Trans Admin"),
+        title: Text("${AppLocalizations.of(context)!.appTitle} Admin"),
         backgroundColor: Colors.teal,
         elevation: 0,
         actions: [IconButton(icon: Icon(Icons.refresh), onPressed: fetchStats)],
@@ -122,7 +125,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             
             
             Divider(),
-            _buildDrawerItem(Icons.history, "Historique des Trajets", AdminHistoriquePage()),
+            _buildDrawerItem(Icons.history, "Historique des Parcours", AdminHistoriquePage()),
             _buildDrawerItem(Icons.report_problem, "Incidents", IncidentListPage(), color: Colors.red),
            // _buildDrawerItem(Icons.psychology, "Analyse AI & Avis", AvisAdminPage(), color: Colors.purple),
                     _buildDrawerItem(Icons.psychology, "Rapport global d'analyse IA",AdminNlpReportPage(), color: Colors.purple),
@@ -130,9 +133,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
             _buildDrawerItem(Icons.directions_car, "Analyse IA Chauffeurs", const ClientAiDashboardPage(), color: Colors.deepPurple),
             _buildDrawerItem(Icons.account_circle, "Mon Profil", ProfilePage (userEmail: widget.adminEmail)),
             Divider(),
+            ExpansionTile(
+              leading: const Icon(Icons.language, color: Colors.teal),
+              title: Text(AppLocalizations.of(context)!.language),
+              children: [
+                _buildLanguageItem("Français", 'fr'),
+                _buildLanguageItem("English", 'en'),
+                _buildLanguageItem("العربية", 'ar'),
+              ],
+            ),
+            Divider(),
             ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
-              title: Text("Déconnexion"),
+              title: Text(AppLocalizations.of(context)!.localeName == 'fr' ? "Déconnexion" : (AppLocalizations.of(context)!.localeName == 'ar' ? "تسجيل الخروج" : "Logout")),
               onTap: () async {
                 await CurrentUser.clearSession();
                 Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
@@ -197,7 +210,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
                   const SizedBox(height: 12),
                   _buildQuickActionCard(
-                    "📜 Historique des Trajets",
+                    "📜 Historique des Parcours",
                     "Voir l'historique complet des parcours effectués",
                     Icons.history,
                     Colors.blueGrey,
@@ -206,6 +219,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildLanguageItem(String label, String code) {
+    final provider = Provider.of<LanguageProvider>(context, listen: false);
+    bool isSelected = provider.locale.languageCode == code;
+    return ListTile(
+      title: Text(label),
+      trailing: isSelected ? const Icon(Icons.check, color: Colors.teal) : null,
+      onTap: () {
+        provider.changeLanguage(code);
+        Navigator.pop(context); // Close drawer
+      },
     );
   }
 
