@@ -393,7 +393,7 @@ def get_buses():
         cursor = conn.cursor()
         
         # نطلبوا كل الحقول من جدول Bus
-        cursor.execute("SELECT * FROM Bus")
+        cursor.execute("SELECT * FROM Bus ORDER BY Code_bus DESC")
         rows = cursor.fetchall()
         conn.close()
         
@@ -433,7 +433,7 @@ def update_bus(id):
         data = request.get_json()
         numero = data.get('Numero_bus')
         etat = data.get('Etat')
-        id_chauffeur = data.get('ID_Chauffeur')
+        id_chauffeur = data.get('Code_chauffeur')  # ✅ Corrigé: même clé que Flutter envoie
 
         conn = get_db_connection()
         
@@ -505,7 +505,7 @@ def get_lignes():
     try:
         conn = get_db_connection()
         # نلوجوا في جدول Ligne اللي صنعناه حسب الدياغرام
-        lignes = conn.execute('SELECT * FROM Ligne').fetchall()
+        lignes = conn.execute('SELECT * FROM Ligne ORDER BY Code_Ligne DESC').fetchall()
         conn.close()
         
         # تحويل البيانات لـ List باش الـ Flutter يفهمها
@@ -598,6 +598,7 @@ def get_chauffeurs():
         SELECT u.ID_utilisateur, u.Nom, u.Email, c.Code_chauffeur 
         FROM Chauffeur c
         JOIN Utilisateur u ON c.ID_utilisateur = u.ID_utilisateur
+        ORDER BY c.Code_chauffeur DESC
         """
         cursor = conn.execute(query)
         rows = cursor.fetchall()
@@ -828,7 +829,7 @@ def get_all_parcours():
             SELECT P.*, L.Libelle as Nom_Ligne
             FROM Parcours P
             JOIN Ligne L ON P.Code_Ligne = L.Code_Ligne
-            ORDER BY L.Libelle, P.Heure_depart ASC
+            ORDER BY P.ID_parcours DESC
         """
         rows = cursor.execute(query).fetchall()
         conn.close()
@@ -1512,6 +1513,7 @@ def get_all_lignes():
             LEFT JOIN Bus B ON L.Code_bus = B.Code_bus
             LEFT JOIN Chauffeur C ON B.Code_chauffeur = C.Code_chauffeur
             LEFT JOIN Utilisateur U ON C.ID_utilisateur = U.ID_utilisateur
+            ORDER BY L.Code_Ligne DESC
         """
         lignes = conn.execute(query).fetchall()
         
